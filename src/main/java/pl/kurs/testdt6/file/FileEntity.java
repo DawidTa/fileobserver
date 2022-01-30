@@ -3,6 +3,7 @@ package pl.kurs.testdt6.file;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -11,6 +12,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Accessors(chain = true)
 @Table(name = "file")
 public class FileEntity {
 
