@@ -42,7 +42,7 @@ public class FileWatchService {
     }
 
     @Transactional
-    public void notifyChanges(WatchService watchService, Path parent, Path filePath, String watchPath) throws InterruptedException, IOException, MessagingException {
+    public void notifyChanges(WatchService watchService, Path parent, Path filePath, String watchPath) throws IOException, MessagingException {
         String message = null;
         WatchKey key;
         try {
@@ -65,7 +65,7 @@ public class FileWatchService {
                 }
                 key.reset();
             }
-        } catch (ClosedWatchServiceException ex) {
+        } catch (ClosedWatchServiceException | InterruptedException ex) {
             exceptionService.handleClosedWatchServiceException(watchPath);
         }
 
