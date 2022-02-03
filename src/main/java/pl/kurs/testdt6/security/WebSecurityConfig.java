@@ -29,6 +29,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.DELETE, "/follow/**").hasRole("USER")
                 .antMatchers(HttpMethod.GET, "/admin/**").hasRole("ADMIN")
                 .antMatchers(HttpMethod.GET, "/follow/**").hasRole("USER")
+                .anyRequest().authenticated()
                 .and()
                 .httpBasic();
     }
