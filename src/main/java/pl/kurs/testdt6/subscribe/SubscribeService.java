@@ -10,10 +10,8 @@ import pl.kurs.testdt6.exception.JobNotFoundException;
 import pl.kurs.testdt6.file.FileService;
 import pl.kurs.testdt6.job.JobEntity;
 import pl.kurs.testdt6.job.JobRepository;
-import pl.kurs.testdt6.thread.ThreadService;
 
 import javax.transaction.Transactional;
-import java.io.IOException;
 import java.util.Set;
 
 @Service
@@ -24,7 +22,6 @@ public class SubscribeService {
     private final AccountService accountService;
     private final JobRepository jobRepository;
     private final FileService fileService;
-    private final ThreadService threadService;
     private final LogService logService;
 
     public void subscribeJob(JobEntity job) {
@@ -34,7 +31,7 @@ public class SubscribeService {
     }
 
     @Transactional
-    public String unsubscribeJob(String jobUUID) throws JobNotFoundException, IOException {
+    public String unsubscribeJob(String jobUUID) throws JobNotFoundException {
         AccountEntity account = accountService.getCurrentlyLoggedUsername();
         JobEntity job = jobRepository.findById(jobUUID).orElseThrow(() -> new JobNotFoundException(jobUUID));
         account.removeJob(job);
@@ -42,7 +39,6 @@ public class SubscribeService {
             fileService.deleteFileFromDb(jobUUID);
             jobRepository.delete(job);
             accountRepository.saveAndFlush(account);
-            threadService.stopThread(jobUUID);
             logService.saveLog("No more subscribers", job.getPath(), job.getStartTime());
             return "You was the last subscriber. The job has been deleted.";
         }
