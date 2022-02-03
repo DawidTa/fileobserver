@@ -3,16 +3,21 @@ package pl.kurs.testdt6.emailSender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import pl.kurs.testdt6.account.AccountEntity;
 import pl.kurs.testdt6.account.AccountService;
 import pl.kurs.testdt6.job.JobRepository;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Async
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
@@ -31,10 +36,10 @@ public class EmailService {
 
     public void sendNotification(String watchPath, String message) throws MessagingException {
         String jobId = jobRepository.findIdByPath(watchPath);
-        List<String> emails = accountService.getSubscribersEmail(jobId);
+        List<AccountEntity> accountList = accountService.getSubscribersEmail(jobId);
+        Set<String> emails = accountList.stream().map(AccountEntity::getEmail).collect(Collectors.toSet());
         for (String email : emails) {
             sendEmail(email, "Notification changes", message);
         }
-        System.out.println(emails);
     }
 }
