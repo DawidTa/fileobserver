@@ -8,9 +8,7 @@ import pl.kurs.testdt6.file.FileService;
 import pl.kurs.testdt6.job.JobEntity;
 import pl.kurs.testdt6.job.JobRepository;
 import pl.kurs.testdt6.subscribe.SubscribeService;
-import pl.kurs.testdt6.thread.ThreadService;
 
-import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 
 @Service
@@ -18,7 +16,6 @@ import java.nio.file.NoSuchFileException;
 public class ExceptionService {
 
     private final ExceptionModel exceptionModel;
-    private final ThreadService threadService;
     private final JobRepository jobRepository;
     private final SubscribeService subscribeService;
     private final LogService logService;
@@ -31,16 +28,11 @@ public class ExceptionService {
                 .setStatus(status.toString());
     }
 
-    public void handleNoSuchFileException(NoSuchFileException ex) throws IOException {
+    public void handleNoSuchFileException(NoSuchFileException ex) {
         JobEntity job = jobRepository.findByPath(ex.getFile());
-        threadService.stopThread(job.getJobId());
         subscribeService.deleteAllUsersFromJob(job.getJobId());
         fileService.deleteFileFromDb(job.getJobId());
         jobRepository.delete(job);
         logService.saveLog("File deleted", ex.getFile(), job.getStartTime());
-    }
-
-    public void handleClosedWatchServiceException(String watchPath) {
-
     }
 }
