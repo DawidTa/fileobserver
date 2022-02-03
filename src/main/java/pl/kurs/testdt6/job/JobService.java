@@ -6,10 +6,8 @@ import org.springframework.stereotype.Service;
 import pl.kurs.testdt6.account.AccountEntity;
 import pl.kurs.testdt6.exception.JobNotFoundException;
 import pl.kurs.testdt6.file.FileService;
-import pl.kurs.testdt6.file.FileWatchService;
 import pl.kurs.testdt6.subscribe.SubscribeService;
 
-import javax.mail.MessagingException;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -23,14 +21,13 @@ public class JobService {
 
     private final JobRepository jobRepository;
     private final FileService fileService;
-    private final FileWatchService fileWatchService;
     private final SubscribeService subscribeService;
 
     public List<JobEntity> getJobs() {
         return jobRepository.findAll();
     }
 
-    public JobEntity createNewJob(String path) throws IOException, MessagingException, InterruptedException {
+    public JobEntity createNewJob(String path) throws IOException {
         fileService.isFileExist(path);
         if (!isJobAlreadyCreated(path)) {
             JobEntity job = new JobEntity();
@@ -39,7 +36,7 @@ public class JobService {
             jobRepository.saveAndFlush(job);
             subscribeService.subscribeJob(job);
             fileService.saveFileToDb(path);
-            fileWatchService.createWatchService(path, job.getJobId());
+            fileService.createTempFile(path);
             return job;
         }
         JobEntity workingJob = jobRepository.findByPath(path);
@@ -48,7 +45,7 @@ public class JobService {
     }
 
     @Transactional
-    public String deleteJob(String jobUUID) throws JobNotFoundException, IOException {
+    public String deleteJob(String jobUUID) throws JobNotFoundException {
         return subscribeService.unsubscribeJob(jobUUID);
     }
 
