@@ -1,5 +1,6 @@
 package pl.kurs.testdt6.job;
 
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ public class JobAdminController {
     private final JobService jobService;
 
     @GetMapping("/{jobUUID}")
+    @ApiOperation(value = "Find specific active job and number of observers and their emails")
     public ResponseEntity getJobAdmin(@PathVariable String jobUUID) {
         return new ResponseEntity(jobService.getJobAdmin(jobUUID), HttpStatus.OK);
     }
