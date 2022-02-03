@@ -14,8 +14,8 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
 
-    public List<String> getSubscribersEmail(String jobId) {
-        return accountRepository.findAllBySubscribedJob(jobId);
+    public List<AccountEntity> getSubscribersEmail(String jobId) {
+        return accountRepository.findAllByJobs_JobId(jobId);
     }
 
     public AccountEntity getCurrentlyLoggedUsername() {
