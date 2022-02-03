@@ -1,82 +1,123 @@
 package pl.kurs.testdt6.file;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import pl.kurs.testdt6.emailSender.EmailService;
 import pl.kurs.testdt6.exception.ExceptionService;
 
 import javax.mail.MessagingException;
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+
+import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 @Service
 @RequiredArgsConstructor
 public class FileWatchService {
 
+    @Value("${filewatch.service.path}")
+    private Path directoryPath;
+//    @Value("{filewatch.service.subdirectories}")
+//    private String watchSubdirectories;
+
+    private Map<WatchKey, Path> keys;
+    private boolean trace = false;
+    private boolean watchSubdirectories = true;
+
     private final EmailService emailService;
     private final FileService fileService;
-    private final FileModel fileModel;
     private final ExceptionService exceptionService;
 
-
     @Async
-    public void createWatchService(String watchPath, String uuid) throws InterruptedException, IOException, MessagingException {
-        Path filePath = Paths.get(watchPath);
-        Path parent = filePath.getParent();
-        WatchService watchService
-                = FileSystems.getDefault().newWatchService();
+    @EventListener(ApplicationStartedEvent.class)
+    public void createWatchServiceTest() throws IOException, InterruptedException, MessagingException {
+        Path filePath = Paths.get(String.valueOf(directoryPath));
 
-        parent.register(
-                watchService,
-                StandardWatchEventKinds.ENTRY_MODIFY,
-                StandardWatchEventKinds.ENTRY_DELETE);
-        fileModel.getWatchServices().put(uuid, watchService);
+        WatchService watchService = watchDir(directoryPath, watchSubdirectories);
 
-        setNameForWatchService(uuid);
-
-        notifyChanges(watchService, parent, filePath, watchPath);
-    }
-
-    @Transactional
-    public void notifyChanges(WatchService watchService, Path parent, Path filePath, String watchPath) throws IOException, MessagingException {
-        String message = null;
         WatchKey key;
-        try {
-            while ((key = watchService.take()) != null) {
-                for (WatchEvent<?> event : key.pollEvents()) {
-                    System.out.println(filePath.toString());
-                    Path changed = parent.resolve((Path) event.context());
+        while ((key = watchService.take()) != null) {
+            for (WatchEvent<?> event : key.pollEvents()) {
+                Path child = resolvePath(key, event);
+                if (fileService.isFileObserved(child.toString())) {
                     try {
-                        if (Files.exists(changed) && Files.isSameFile(changed, filePath)) {
-                            LocalDateTime modificationDateTime = fileService.getModificationDateTime(filePath);
-                            String addedText = fileService.addedContentToFile(watchPath);
-                            message = "On " + modificationDateTime.toString() + " file " + event.context() + " has been changed \n" +
-                                    "Text added to file \n" + addedText;
-                            emailService.sendNotification(watchPath, message);
+                        if (Files.exists(child)) {
+                            prepareNotification(child, filePath, event);
                         }
                     } catch (NoSuchFileException ex) {
                         exceptionService.handleNoSuchFileException(ex);
                     }
-
                 }
-                key.reset();
+                if (watchSubdirectories && (event.kind() == ENTRY_CREATE)) {
+                    addNewDirectoryToWatcher(child, watchService);
+                }
             }
-        } catch (ClosedWatchServiceException | InterruptedException ex) {
-            exceptionService.handleClosedWatchServiceException(watchPath);
+            key.reset();
         }
-
     }
 
-    private void setNameForWatchService(String uuid) {
-        Set<Thread> threads = Thread.getAllStackTraces().keySet();
-        for (Thread thread : threads) {
-            if (thread.getName().equals("FileSystemWatcher")) {
-                thread.setName(uuid);
+    private void addNewDirectoryToWatcher(Path child, WatchService watchService) {
+        try {
+            if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
+                registerAll(child, watchService);
             }
+        } catch (IOException x) {
+            // ignore to keep sample readbale
         }
+    }
+
+    private WatchService watchDir(Path dir, boolean watchSubdirectories) throws IOException {
+        WatchService watchService = FileSystems.getDefault().newWatchService();
+        this.keys = new HashMap<>();
+
+        if (watchSubdirectories) {
+            registerAll(dir, watchService);
+            System.out.println("Done.");
+        } else {
+            register(dir, watchService);
+        }
+        this.trace = true;
+        return watchService;
+    }
+
+    private void register(Path dir, WatchService watcher) throws IOException {
+        WatchKey key = dir.register(watcher, ENTRY_MODIFY, ENTRY_CREATE);
+        keys.put(key, dir);
+    }
+
+    private void registerAll(final Path start, WatchService watcher) throws IOException {
+        Files.walkFileTree(start, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                    throws IOException {
+                register(dir, watcher);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    private Path resolvePath(WatchKey key, WatchEvent<?> event) {
+        Path dir = keys.get(key);
+        Path name = (Path) event.context();
+        return dir.resolve(name);
+    }
+
+    private void prepareNotification(Path child, Path filePath, WatchEvent<?> event) throws IOException, MessagingException {
+        String message = null;
+        LocalDateTime modificationDateTime = fileService.getModificationDateTime(filePath);
+        String addedText = fileService.addedContentToFile(child.toString());
+        message = "On " + modificationDateTime.toString() + " file " + event.context() + " has been changed \n" +
+                "Text added to file \n" + addedText;
+        emailService.sendNotification(child.toString(), message);
     }
 }
