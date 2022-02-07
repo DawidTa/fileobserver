@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+    <changeSet id="1" author="dtaczkowski">
+        <comment>Create log table</comment>
+        <createTable tableName="log">
+            <column name="log_id" type="varchar(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="operation_type" type="varchar(255)"/>
+            <column name="path" type="varchar(260)"/>
+            <column name="job_start_date" type="datetime"/>
+            <column name="job_end_date" type="datetime"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

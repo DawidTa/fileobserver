@@ -17,13 +17,14 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Async
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
     private final JobRepository jobRepository;
     private final AccountService accountService;
 
+
+    @Async
     public void sendEmail(String to, String subject, String content) throws MessagingException {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
@@ -33,7 +34,7 @@ public class EmailService {
         javaMailSender.send(mimeMessage);
     }
 
-
+    @Async
     public void sendNotification(String watchPath, String message) throws MessagingException {
         String jobId = jobRepository.findIdByPath(watchPath);
         List<AccountEntity> accountList = accountService.getSubscribersEmail(jobId);

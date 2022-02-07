@@ -12,6 +12,7 @@ import pl.kurs.testdt6.job.JobEntity;
 import pl.kurs.testdt6.job.JobRepository;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.util.Set;
 
 @Service
@@ -31,11 +32,12 @@ public class SubscribeService {
     }
 
     @Transactional
-    public String unsubscribeJob(String jobUUID) throws JobNotFoundException {
+    public String unsubscribeJob(String jobUUID) throws JobNotFoundException, IOException {
         AccountEntity account = accountService.getCurrentlyLoggedUsername();
         JobEntity job = jobRepository.findById(jobUUID).orElseThrow(() -> new JobNotFoundException(jobUUID));
         account.removeJob(job);
         if (job.getAccounts().size() == 0) {
+            fileService.deleteTempFile(jobUUID);
             fileService.deleteFileFromDb(jobUUID);
             jobRepository.delete(job);
             accountRepository.saveAndFlush(account);

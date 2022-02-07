@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+    <changeSet id="1" author="dtaczkowski">
+        <insert dbms="h2, mysql"
+                schemaName="testdt6"
+                tableName="account">
+            <column name="account_id" value="76821468-7d4c-11ec-90d6-0242ac120003"/>
+            <column name="activation_token" value="8df870a6-7d4c-11ec-90d6-0242ac120003"/>
+            <column name="email" value="test@test.pl"/>
+            <column name="is_active" value="1"/>
+            <column name="lastname" value="Taczkowski"/>
+            <column name="name" value="Dave"/>
+            <column name="password" value="$2a$12$zxSoJSbyuSKeLINRcs06lecVxceHoaWxssEJ4LaPkGF22gbwKPDaq"/>
+            <column name="username" value="Dawid"/>
+        </insert>
+        <insert dbms="h2,mysql"
+                schemaName="testdt6"
+                tableName="account">
+            <column name="account_id" value="7f3d9bcc-7d4c-11ec-90d6-0242ac120003"/>
+            <column name="activation_token" value="931e0cd0-7d4c-11ec-90d6-0242ac120003"/>
+            <column name="email" value="test2@test.pl"/>
+            <column name="is_active" value="1"/>
+            <column name="lastname" value="Tacz"/>
+            <column name="name" value="David"/>
+            <column name="password" value="$2a$12$zxSoJSbyuSKeLINRcs06lecVxceHoaWxssEJ4LaPkGF22gbwKPDaq"/>
+            <column name="username" value="Dawid123"/>
+        </insert>
+        <insert dbms="h2,mysql"
+                schemaName="testdt6"
+                tableName="account">
+            <column name="account_id" value="7f3d9bcc-7d4c-11ec-90d6-0223fsd56123"/>
+            <column name="activation_token" value="946ga4d0-7d4c-11ec-90d6-0242ac120003"/>
+            <column name="email" value="test3@test.pl"/>
+            <column name="is_active" value="1"/>
+            <column name="lastname" value="Testowy"/>
+            <column name="name" value="Test"/>
+            <column name="password" value="$2a$12$zxSoJSbyuSKeLINRcs06lecVxceHoaWxssEJ4LaPkGF22gbwKPDaq"/>
+            <column name="username" value="DawidUser"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

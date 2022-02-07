@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+    <changeSet id="1" author="dtaczkowski">
+        <insert dbms="h2, mysql"
+                schemaName="testdt6"
+                tableName="role">
+            <column name="role_id" value="f5752e30-8072-11ec-a8a3-0242ac120002"/>
+            <column name="name" value="ADMIN"/>
+        </insert>
+        <insert dbms="h2, mysql"
+                schemaName="testdt6"
+                tableName="role">
+            <column name="role_id" value="fe897878-8072-11ec-a8a3-0242ac120002"/>
+            <column name="name" value="USER"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

@@ -2,7 +2,6 @@ package pl.kurs.testdt6.job;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import javax.mail.MessagingException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,14 +31,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@RequiredArgsConstructor
+@ActiveProfiles("test")
 @Sql("/load-data.sql")
 class JobControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
     @TempDir
-    private File testDirectory;
+    File testDirectory;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -47,10 +46,10 @@ class JobControllerTest {
     @Autowired
     private JobRepository jobRepository;
 
-
     @Test
     @WithMockUser(username = "Dawid", password = "Test123!", roles = "ADMIN")
     void getAllJobsForAdmin() throws Exception {
+
         JobEntity job = registerTestJob(testDirectory.getPath(), "test.txt");
         JobEntity nextJob = registerTestJob(testDirectory.getPath(), "test2.txt");
 
@@ -195,7 +194,7 @@ class JobControllerTest {
         return testFile;
     }
 
-    private JobEntity registerTestJob(String testFilePath, String fileName) throws MessagingException, IOException, InterruptedException {
+    private JobEntity registerTestJob(String testFilePath, String fileName) throws IOException {
         File fileInTempDir = createFileInTempDir(new File(testFilePath), fileName);
         return jobService.createNewJob(fileInTempDir.getPath());
     }

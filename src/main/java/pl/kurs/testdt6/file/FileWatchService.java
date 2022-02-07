@@ -18,8 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.nio.file.StandardWatchEventKinds.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +26,11 @@ public class FileWatchService {
 
     @Value("${filewatch.service.path}")
     private Path directoryPath;
-//    @Value("{filewatch.service.subdirectories}")
-//    private String watchSubdirectories;
+    @Value("#{new Boolean('${filewatch.service.subdirectories}')}")
+    private Boolean watchSubdirectories;
 
     private Map<WatchKey, Path> keys;
     private boolean trace = false;
-    private boolean watchSubdirectories = true;
 
     private final EmailService emailService;
     private final FileService fileService;
@@ -54,6 +52,7 @@ public class FileWatchService {
                         if (Files.exists(child)) {
                             prepareNotification(child, filePath, event);
                         }
+                        throw new NoSuchFileException(child.toString());
                     } catch (NoSuchFileException ex) {
                         exceptionService.handleNoSuchFileException(ex);
                     }
@@ -82,7 +81,6 @@ public class FileWatchService {
 
         if (watchSubdirectories) {
             registerAll(dir, watchService);
-            System.out.println("Done.");
         } else {
             register(dir, watchService);
         }
@@ -91,7 +89,7 @@ public class FileWatchService {
     }
 
     private void register(Path dir, WatchService watcher) throws IOException {
-        WatchKey key = dir.register(watcher, ENTRY_MODIFY, ENTRY_CREATE);
+        WatchKey key = dir.register(watcher, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE);
         keys.put(key, dir);
     }
 
@@ -115,9 +113,14 @@ public class FileWatchService {
     private void prepareNotification(Path child, Path filePath, WatchEvent<?> event) throws IOException, MessagingException {
         String message = null;
         LocalDateTime modificationDateTime = fileService.getModificationDateTime(filePath);
-        String addedText = fileService.addedContentToFile(child.toString());
-        message = "On " + modificationDateTime.toString() + " file " + event.context() + " has been changed \n" +
-                "Text added to file \n" + addedText;
+        String addedText = fileService.compareChangesInFile(child.toString());
+        if (addedText.isEmpty()) {
+            message = "Someone has delete temporary file and we need to create new one. \n" +
+                    "all changes will be track from next file edit.";
+        } else {
+            message = "On " + modificationDateTime.toString() + " file " + event.context() + " has been changed \n" +
+                    "Text added to file \n" + addedText;
+        }
         emailService.sendNotification(child.toString(), message);
     }
 }

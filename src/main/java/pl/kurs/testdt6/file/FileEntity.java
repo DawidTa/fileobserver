@@ -6,7 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Data
 @AllArgsConstructor
@@ -22,7 +25,7 @@ public class FileEntity {
             name = "UUID",
             strategy = "org.hibernate.id.UUIDGenerator")
     private String fileId;
-    private String filePath;
-    @Lob
-    private String fileContent;
+    private String tempFilePath;
+    private String jobId;
+
 }

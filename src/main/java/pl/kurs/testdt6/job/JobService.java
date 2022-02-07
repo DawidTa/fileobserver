@@ -28,15 +28,14 @@ public class JobService {
     }
 
     public JobEntity createNewJob(String path) throws IOException {
-        fileService.isFileExist(path);
+        //fileService.isFileExist(path);
         if (!isJobAlreadyCreated(path)) {
             JobEntity job = new JobEntity();
             job.setPath(path);
             job.setStartTime(LocalDateTime.now());
             jobRepository.saveAndFlush(job);
             subscribeService.subscribeJob(job);
-            fileService.saveFileToDb(path);
-            fileService.createTempFile(path);
+            fileService.createTempFile(path, job.getJobId());
             return job;
         }
         JobEntity workingJob = jobRepository.findByPath(path);
@@ -45,7 +44,7 @@ public class JobService {
     }
 
     @Transactional
-    public String deleteJob(String jobUUID) throws JobNotFoundException {
+    public String deleteJob(String jobUUID) throws JobNotFoundException, IOException {
         return subscribeService.unsubscribeJob(jobUUID);
     }
 

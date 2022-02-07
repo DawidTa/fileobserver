@@ -1,19 +1,18 @@
 package pl.kurs.testdt6.job;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.kurs.testdt6.account.AccountEntity;
 
-import javax.mail.MessagingException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,14 +27,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@RequiredArgsConstructor
+@ActiveProfiles("test")
 @Sql("/load-data.sql")
 class JobAdminControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
     @TempDir
-    private File testDirectory;
+    File testDirectory;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -66,7 +65,7 @@ class JobAdminControllerTest {
         return testFile;
     }
 
-    private JobEntity registerTestJob(String testFilePath) throws MessagingException, IOException, InterruptedException {
+    private JobEntity registerTestJob(String testFilePath) throws IOException {
         File fileInTempDir = createFileInTempDir(new File(testFilePath));
         return jobService.createNewJob(fileInTempDir.getPath());
     }

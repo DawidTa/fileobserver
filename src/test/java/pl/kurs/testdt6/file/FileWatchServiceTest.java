@@ -3,10 +3,8 @@ package pl.kurs.testdt6.file;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
-import pl.kurs.testdt6.configuration.BeanConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,13 +18,12 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-@ContextConfiguration(classes = BeanConfig.class, loader = AnnotationConfigContextLoader.class)
 class FileWatchServiceTest {
 
     private WatchService watchService;
     private WatchKey watchKey;
     @TempDir
-    private Path filePath;
+    Path filePath;
 
 
     @BeforeEach
@@ -40,7 +37,7 @@ class FileWatchServiceTest {
         File file = new File(String.valueOf(filePath));
         File fileInTempDir = createFileInTempDir(file, "test.txt");
 
-        WatchKey watchTestKey = watchService.poll(20, TimeUnit.SECONDS);
+        WatchKey watchTestKey = watchService.poll(10, TimeUnit.SECONDS);
         assertNotNull(watchKey);
         List<WatchEvent<?>> eventList = watchKey.pollEvents();
 

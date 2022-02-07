@@ -9,6 +9,7 @@ import pl.kurs.testdt6.job.JobEntity;
 import pl.kurs.testdt6.job.JobRepository;
 import pl.kurs.testdt6.subscribe.SubscribeService;
 
+import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 
 @Service
@@ -28,9 +29,10 @@ public class ExceptionService {
                 .setStatus(status.toString());
     }
 
-    public void handleNoSuchFileException(NoSuchFileException ex) {
+    public void handleNoSuchFileException(NoSuchFileException ex) throws IOException {
         JobEntity job = jobRepository.findByPath(ex.getFile());
         subscribeService.deleteAllUsersFromJob(job.getJobId());
+        fileService.deleteTempFile(job.getJobId());
         fileService.deleteFileFromDb(job.getJobId());
         jobRepository.delete(job);
         logService.saveLog("File deleted", ex.getFile(), job.getStartTime());

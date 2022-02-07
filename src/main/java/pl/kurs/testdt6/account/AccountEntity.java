@@ -24,8 +24,6 @@ import java.util.*;
                 columnNames = {"username", "email"})})
 public class AccountEntity implements UserDetails {
 
-    private final String prefix = "ROLE_";
-
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(
@@ -80,6 +78,7 @@ public class AccountEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        String prefix = "ROLE_";
         Set<RoleEntity> roles = this.getRoles();
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 

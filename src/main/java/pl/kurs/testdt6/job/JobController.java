@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.kurs.testdt6.exception.JobNotFoundException;
 
-import javax.mail.MessagingException;
+import javax.validation.Valid;
 import java.io.IOException;
 
 @RestController
@@ -53,7 +53,7 @@ public class JobController {
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 500, message = "Internal Sever Error")
     })
-    public ResponseEntity registerJob(@RequestBody JobModel jobModel) throws IOException, MessagingException {
+    public ResponseEntity registerJob(@Valid @RequestBody JobModel jobModel) throws IOException {
         return new ResponseEntity(jobService.createNewJob(jobModel.getPath()), HttpStatus.CREATED);
     }
 
