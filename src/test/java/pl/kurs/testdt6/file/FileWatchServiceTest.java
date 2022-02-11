@@ -3,7 +3,6 @@ package pl.kurs.testdt6.file;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
@@ -24,7 +23,6 @@ class FileWatchServiceTest {
     private WatchKey watchKey;
     @TempDir
     Path filePath;
-
 
     @BeforeEach
     void setUp() throws IOException {

@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class EmailServiceTest {
 
     private final GreenMail smtp =
-            new GreenMail(new ServerSetup(3025,"127.0.0.1", ServerSetup.PROTOCOL_SMTP));
+            new GreenMail(new ServerSetup(3025, "127.0.0.1", ServerSetup.PROTOCOL_SMTP));
 
     @Autowired
     private JavaMailSender javaMailSender;

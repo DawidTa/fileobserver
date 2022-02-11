@@ -55,8 +55,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    ServletRegistrationBean h2servletRegistration(){
-        ServletRegistrationBean registrationBean = new ServletRegistrationBean( new WebServlet());
+    ServletRegistrationBean h2servletRegistration() {
+        ServletRegistrationBean registrationBean = new ServletRegistrationBean(new WebServlet());
         registrationBean.addUrlMappings("/console/*");
         return registrationBean;
     }

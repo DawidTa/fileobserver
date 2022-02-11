@@ -1,4 +1,4 @@
-package pl.kurs.testdt6.Log;
+package pl.kurs.testdt6.log;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

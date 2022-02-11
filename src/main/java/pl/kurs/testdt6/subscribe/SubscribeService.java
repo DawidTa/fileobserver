@@ -2,7 +2,6 @@ package pl.kurs.testdt6.subscribe;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.kurs.testdt6.Log.LogService;
 import pl.kurs.testdt6.account.AccountEntity;
 import pl.kurs.testdt6.account.AccountRepository;
 import pl.kurs.testdt6.account.AccountService;
@@ -10,6 +9,7 @@ import pl.kurs.testdt6.exception.JobNotFoundException;
 import pl.kurs.testdt6.file.FileService;
 import pl.kurs.testdt6.job.JobEntity;
 import pl.kurs.testdt6.job.JobRepository;
+import pl.kurs.testdt6.log.LogService;
 
 import javax.transaction.Transactional;
 import java.io.IOException;

@@ -51,8 +51,9 @@ public class FileWatchService {
                     try {
                         if (Files.exists(child)) {
                             prepareNotification(child, filePath, event);
+                        } else {
+                            throw new NoSuchFileException(child.toString());
                         }
-                        throw new NoSuchFileException(child.toString());
                     } catch (NoSuchFileException ex) {
                         exceptionService.handleNoSuchFileException(ex);
                     }
@@ -94,14 +95,19 @@ public class FileWatchService {
     }
 
     private void registerAll(final Path start, WatchService watcher) throws IOException {
-        Files.walkFileTree(start, new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-                    throws IOException {
-                register(dir, watcher);
-                return FileVisitResult.CONTINUE;
-            }
-        });
+        try {
+            Files.walkFileTree(start, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                        throws IOException {
+                    register(dir, watcher);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (FileSystemException ex) {
+            exceptionService.handleFileSystemException(ex);
+        }
+
     }
 
     private Path resolvePath(WatchKey key, WatchEvent<?> event) {

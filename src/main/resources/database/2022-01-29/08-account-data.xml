@@ -21,7 +21,7 @@
                 tableName="account">
             <column name="account_id" value="7f3d9bcc-7d4c-11ec-90d6-0242ac120003"/>
             <column name="activation_token" value="931e0cd0-7d4c-11ec-90d6-0242ac120003"/>
-            <column name="email" value="test2@test.pl"/>
+            <column name="email" value="dawid.taczkowski@gmail.com"/>
             <column name="is_active" value="1"/>
             <column name="lastname" value="Tacz"/>
             <column name="name" value="David"/>
