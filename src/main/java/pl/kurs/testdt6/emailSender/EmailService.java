@@ -23,8 +23,6 @@ public class EmailService {
     private final JobRepository jobRepository;
     private final AccountService accountService;
 
-
-    @Async
     public void sendEmail(String to, String subject, String content) throws MessagingException {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);

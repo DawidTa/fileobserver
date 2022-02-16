@@ -12,9 +12,6 @@ public class PathExistsValidator implements ConstraintValidator<PathExists, Stri
     @Override
     public boolean isValid(String path, ConstraintValidatorContext constraintValidatorContext) {
         File file = new File(path);
-        if (!file.exists() || file.isDirectory()) {
-            throw new IllegalArgumentException("File not exist or is a directory");
-        }
-        return true;
+        return file.exists() && !file.isDirectory();
     }
 }

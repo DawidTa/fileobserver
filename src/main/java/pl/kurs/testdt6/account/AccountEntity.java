@@ -4,10 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 import pl.kurs.testdt6.job.JobEntity;
 import pl.kurs.testdt6.role.RoleEntity;
 
@@ -40,7 +43,7 @@ public class AccountEntity implements UserDetails {
 
     @ManyToMany(
             cascade = {CascadeType.MERGE, CascadeType.PERSIST},
-            fetch = FetchType.EAGER
+            fetch = FetchType.LAZY
     )
     @JoinTable(
             name = "users_jobs",
@@ -50,8 +53,7 @@ public class AccountEntity implements UserDetails {
     private Set<JobEntity> jobs = new HashSet<>();
 
     @ManyToMany(
-            cascade = {CascadeType.MERGE, CascadeType.PERSIST},
-            fetch = FetchType.EAGER
+            cascade = {CascadeType.MERGE, CascadeType.PERSIST}
     )
     @JoinTable(
             name = "users_roles",
@@ -78,12 +80,10 @@ public class AccountEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String prefix = "ROLE_";
-        Set<RoleEntity> roles = this.getRoles();
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-
-        for (RoleEntity role : roles) {
-            authorities.add(new SimpleGrantedAuthority(prefix + role.getName()));
+        Set<RoleEntity> roleEntities = this.getRoles();
+        for (RoleEntity roleEntity : roleEntities) {
+            authorities.add(new SimpleGrantedAuthority(roleEntity.getAuthority()));
         }
         return authorities;
     }

@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import pl.kurs.testdt6.account.AccountEntity;
 
 import javax.persistence.*;
@@ -17,7 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "role")
-public class RoleEntity {
+public class RoleEntity implements GrantedAuthority{
 
     @Id
     @GeneratedValue(generator = "UUID")
@@ -28,6 +30,13 @@ public class RoleEntity {
     private String name;
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "roles", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "roles")
     private Set<AccountEntity> accounts = new HashSet<>();
+
+    @Override
+    public String getAuthority() {
+        String prefix = "ROLE_";
+        SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority(prefix + name);
+        return grantedAuthority.toString();
+    }
 }

@@ -37,8 +37,6 @@ public class SubscribeService {
         JobEntity job = jobRepository.findById(jobUUID).orElseThrow(() -> new JobNotFoundException(jobUUID));
         account.removeJob(job);
         if (job.getAccounts().size() == 0) {
-            fileService.deleteTempFile(jobUUID);
-            fileService.deleteFileFromDb(jobUUID);
             jobRepository.delete(job);
             accountRepository.saveAndFlush(account);
             logService.saveLog("No more subscribers", job.getPath(), job.getStartTime());

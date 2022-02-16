@@ -29,8 +29,9 @@ public class JobEntity {
     private String jobId;
     private String path;
     private LocalDateTime startTime;
+    private int lastByte;
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "jobs", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "jobs", fetch = FetchType.LAZY)
     private Set<AccountEntity> accounts = new HashSet<>();
 }

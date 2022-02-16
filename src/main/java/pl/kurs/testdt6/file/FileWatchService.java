@@ -1,5 +1,6 @@
 package pl.kurs.testdt6.file;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -28,9 +29,9 @@ public class FileWatchService {
     private Path directoryPath;
     @Value("#{new Boolean('${filewatch.service.subdirectories}')}")
     private Boolean watchSubdirectories;
-
-    private Map<WatchKey, Path> keys;
     private boolean trace = false;
+    @Getter
+    private Map<WatchKey, Path> keys;
 
     private final EmailService emailService;
     private final FileService fileService;

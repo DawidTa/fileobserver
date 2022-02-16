@@ -1,7 +1,6 @@
 package pl.kurs.testdt6.job;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import pl.kurs.testdt6.account.AccountEntity;
 import pl.kurs.testdt6.exception.JobNotFoundException;
@@ -27,20 +26,27 @@ public class JobService {
         return jobRepository.findAll();
     }
 
-    public JobEntity createNewJob(String path) throws IOException {
-        //fileService.isFileExist(path);
+    public CreateJobModel createNewJob(String path) throws IOException {
+        CreateJobModel createJobModel = new CreateJobModel();
         if (!isJobAlreadyCreated(path)) {
-            JobEntity job = new JobEntity();
-            job.setPath(path);
-            job.setStartTime(LocalDateTime.now());
+            JobEntity job = setJobAttrib(path);
             jobRepository.saveAndFlush(job);
             subscribeService.subscribeJob(job);
-            fileService.createTempFile(path, job.getJobId());
-            return job;
+            createJobModel.setUuid(job.getJobId());
+            return createJobModel;
         }
         JobEntity workingJob = jobRepository.findByPath(path);
         subscribeService.subscribeJob(workingJob);
-        return workingJob;
+        createJobModel.setUuid(workingJob.getJobId());
+        return createJobModel;
+    }
+
+    private JobEntity setJobAttrib(String path) throws IOException {
+        JobEntity job = new JobEntity();
+        job.setPath(path);
+        job.setStartTime(LocalDateTime.now());
+        job.setLastByte(fileService.getFileBytes(path));
+        return job;
     }
 
     @Transactional
@@ -52,7 +58,6 @@ public class JobService {
         return jobRepository.existsByPath(path);
     }
 
-    @Secured("ROLE_USER")
     public JobStatusModel getJob(String uuid) {
         JobStatusModel jobStatus = new JobStatusModel();
         JobEntity byId = jobRepository.findById(uuid).orElseThrow(() -> new JobNotFoundException(uuid));
@@ -63,7 +68,6 @@ public class JobService {
         return jobStatus;
     }
 
-    @Secured("ROLE_ADMIN")
     public JobStatusAdminModel getJobAdmin(String uuid) {
         JobStatusAdminModel jobStatusAdmin = new JobStatusAdminModel();
         Set<String> emails = new HashSet<>();

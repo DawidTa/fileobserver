@@ -33,8 +33,6 @@ public class ExceptionService {
     public void handleNoSuchFileException(NoSuchFileException ex) throws IOException {
         JobEntity job = jobRepository.findByPath(ex.getFile());
         subscribeService.deleteAllUsersFromJob(job.getJobId());
-        fileService.deleteTempFile(job.getJobId());
-        fileService.deleteFileFromDb(job.getJobId());
         jobRepository.delete(job);
         logService.saveLog("File deleted", ex.getFile(), job.getStartTime());
     }

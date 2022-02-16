@@ -7,6 +7,8 @@ import io.swagger.annotations.Authorization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.kurs.testdt6.exception.JobNotFoundException;
 
@@ -16,6 +18,7 @@ import java.io.IOException;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/follow")
+@Transactional
 public class JobController {
 
     private final JobService jobService;
@@ -41,8 +44,12 @@ public class JobController {
             @ApiResponse(code = 404, message = "Not Found"),
             @ApiResponse(code = 500, message = "Internal Sever Error")
     })
-    public ResponseEntity getJob(@PathVariable String jobUUID) {
-        return new ResponseEntity(jobService.getJob(jobUUID), HttpStatus.OK);
+    public ResponseEntity getJob(@PathVariable String jobUUID, Authentication authentication) {
+        String role = authentication.getAuthorities().toString();
+        if (role.equals("[ROLE_USER]")) {
+            return new ResponseEntity(jobService.getJob(jobUUID), HttpStatus.OK);
+        }
+            return new ResponseEntity(jobService.getJobAdmin(jobUUID), HttpStatus.OK);
     }
 
     @PostMapping
