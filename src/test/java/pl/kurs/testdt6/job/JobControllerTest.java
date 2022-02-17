@@ -32,15 +32,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.WatchKey;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -171,8 +168,7 @@ class JobControllerTest {
     @Test
     @WithMockUser(username = "Dawid123", password = "Test123!", roles = "USER")
     void registerJob_shouldSendMailNotificationChanges() throws Exception {
-        TimeUnit.SECONDS.sleep(10);
-        File fileInTempDir = createFileInTempDir(testDirectory, "test.txt");
+        await().atMost(20, TimeUnit.SECONDS).until(() -> keys.values().toString().contains(testDirectory.getPath()));
         JobModel jobModel = new JobModel(fileInTempDir.getPath());
         String jsonContent = objectMapper.writeValueAsString(jobModel);
 
@@ -187,7 +183,8 @@ class JobControllerTest {
         assertThat(job.getUuid()).isNotNull();
 
         addTextToFile(Path.of(fileInTempDir.getPath()));
-        TimeUnit.SECONDS.sleep(20);
+
+        await().atMost(30, TimeUnit.SECONDS).until(() -> smtp.getReceivedMessages().length == 1);
 
         MimeMessage[] receivedMessage = smtp.getReceivedMessages();
         assertEquals(1, receivedMessage.length);
@@ -203,9 +200,8 @@ class JobControllerTest {
     @Test
     @WithMockUser(username = "Dawid123", password = "Test123!", roles = "USER")
     void registerJob_shouldSendMailNotificationChanges_BigFile() throws Exception {
-        TimeUnit.SECONDS.sleep(10);
+        await().atMost(20, TimeUnit.SECONDS).until(() -> keys.values().toString().contains(testDirectory.getPath()));
 
-        File fileInTempDir = createFileInTempDir(testDirectory, "test.txt");
         JobModel jobModel = new JobModel(fileInTempDir.getPath());
         String jsonContent = objectMapper.writeValueAsString(jobModel);
 
@@ -220,7 +216,8 @@ class JobControllerTest {
         assertThat(job.getUuid()).isNotNull();
 
         addManyLinesToFile(Path.of(fileInTempDir.getPath()));
-        TimeUnit.SECONDS.sleep(20);
+
+        await().atMost(30, TimeUnit.SECONDS).until(() -> smtp.getReceivedMessages().length != 0);
 
         MimeMessage[] receivedMessage = smtp.getReceivedMessages();
         assertEquals(1, receivedMessage.length);
@@ -235,7 +232,7 @@ class JobControllerTest {
 
     @Test
     void registerJob_shouldSendMailNotificationChangesTwoUsers() throws Exception {
-        TimeUnit.SECONDS.sleep(10);
+        await().atMost(20, TimeUnit.SECONDS).until(() -> keys.values().toString().contains(testDirectory.getPath()));
         JobModel jobModel = new JobModel(fileInTempDir.getPath());
         String jsonContent = objectMapper.writeValueAsString(jobModel);
 
@@ -256,7 +253,8 @@ class JobControllerTest {
                 .andExpect(status().isCreated());
 
         addTextToFile(Path.of(fileInTempDir.getPath()));
-        TimeUnit.SECONDS.sleep(20);
+
+        await().atMost(30, TimeUnit.SECONDS).until(() -> smtp.getReceivedMessages().length == 2);
 
         MimeMessage[] receivedMessage = smtp.getReceivedMessages();
         assertEquals(2, receivedMessage.length);
@@ -294,31 +292,29 @@ class JobControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated()).andReturn();
 
-        JobEntity job = objectMapper.readValue(result.getResponse().getContentAsString(), JobEntity.class);
+        CreateJobModel job = objectMapper.readValue(result.getResponse().getContentAsString(), CreateJobModel.class);
 
-        MvcResult resultTwoSubs = mockMvc.perform(get("/follow/{jobUUID}", job.getJobId())
+        MvcResult resultTwoSubs = mockMvc.perform(get("/follow/{jobUUID}", job.getUuid())
                         .with(user("Dawid123").password("Test123!").roles("USER")))
                 .andDo(print())
                 .andExpect(status().isOk()).andReturn();
 
         JobStatusModel jobStatusModelSub = objectMapper.readValue(resultTwoSubs.getResponse().getContentAsString(), JobStatusModel.class);
         assertThat(jobStatusModelSub.getSubscribersAmount()).isEqualTo(2);
-        assertThat(jobStatusModelSub.getDateTime()).isEqualTo(job.getStartTime());
 
 
-        mockMvc.perform(delete("/follow/{jobUUID}", job.getJobId())
+        mockMvc.perform(delete("/follow/{jobUUID}", job.getUuid())
                         .with(user("DawidUser").password("Test123!").roles("USER")))
                 .andDo(print());
 
 
-        MvcResult resultUnsub = mockMvc.perform(get("/follow/{jobUUID}", job.getJobId())
+        MvcResult resultUnsub = mockMvc.perform(get("/follow/{jobUUID}", job.getUuid())
                         .with(user("Dawid123").password("Test123!").roles("USER")))
                 .andDo(print())
                 .andExpect(status().isOk()).andReturn();
 
         JobStatusModel jobStatusModelUnsub = objectMapper.readValue(resultUnsub.getResponse().getContentAsString(), JobStatusModel.class);
         assertThat(jobStatusModelUnsub.getSubscribersAmount()).isEqualTo(1);
-        assertThat(jobStatusModelUnsub.getDateTime()).isEqualTo(job.getStartTime());
 
 
     }
@@ -339,6 +335,16 @@ class JobControllerTest {
         JobStatusAdminModel jobStatusAdminModel = objectMapper.readValue(result.getResponse().getContentAsString(), JobStatusAdminModel.class);
         assertThat(jobStatusAdminModel.getSubscribersAmount()).isEqualTo(1);
         assertThat(jobStatusAdminModel.getEmailList()).isEqualTo(emailSet);
+    }
+
+    @Test
+    @WithMockUser(username = "Dawid123", password = "Test123!", roles = "User")
+    void getJobAdminByUser_ShouldReturnForbidden() throws Exception {
+        CreateJobModel job = registerTestJob(testDirectory.getPath(), "test.txt");
+
+        mockMvc.perform(get("/follow/{jobUUID}", job.getUuid()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
     }
 
     @Test
