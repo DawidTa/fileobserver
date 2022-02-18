@@ -29,7 +29,7 @@ public class JobEntity {
     private String jobId;
     private String path;
     private LocalDateTime startTime;
-    private int lastByte;
+    private long lastByte;
 
     @JsonIgnore
     @ManyToMany(mappedBy = "jobs", fetch = FetchType.LAZY)

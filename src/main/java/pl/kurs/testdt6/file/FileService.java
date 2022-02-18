@@ -1,20 +1,19 @@
 package pl.kurs.testdt6.file;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 import pl.kurs.testdt6.job.JobEntity;
 import pl.kurs.testdt6.job.JobRepository;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 
 @Service
 @RequiredArgsConstructor
@@ -35,24 +34,30 @@ public class FileService {
 
     public String compareChangesInFile(String path) throws IOException {
         JobEntity job = jobRepository.findByPath(path);
-        File file = new File(job.getPath());
-        byte[] bytes = FileUtils.readFileToByteArray(file);
+        BasicFileAttributes attr = Files.readAttributes(Path.of(job.getPath()), BasicFileAttributes.class);
 
-        byte[] addedContent = Arrays.copyOfRange(bytes, job.getLastByte(), bytes.length);
+        long fileSize = attr.size();
+        long fileSizeBeforeEdit = job.getLastByte();
 
-        job.setLastByte(bytes.length);
+        byte[] testBytes = new byte[(int) (fileSize - fileSizeBeforeEdit)];
+
+        RandomAccessFile randomAccessFile = new RandomAccessFile(path, "r");
+        randomAccessFile.seek(fileSizeBeforeEdit);
+        randomAccessFile.readFully(testBytes);
+        randomAccessFile.close();
+
+        job.setLastByte(fileSize);
         jobRepository.saveAndFlush(job);
 
-        return new String(addedContent);
+        return new String(testBytes, StandardCharsets.UTF_8);
     }
 
     public boolean isFileObserved(String path) {
         return jobRepository.existsByPath(path);
     }
 
-    public int getFileBytes(String path) throws IOException {
-        File file = new File(path);
-        byte[] bytes = FileUtils.readFileToByteArray(file);
-        return bytes.length;
+    public long getFileBytes(String path) throws IOException {
+        BasicFileAttributes attr = Files.readAttributes(Path.of(path), BasicFileAttributes.class);
+        return attr.size();
     }
 }

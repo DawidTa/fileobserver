@@ -2,7 +2,6 @@ package pl.kurs.testdt6.job;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.kurs.testdt6.account.AccountEntity;
 import pl.kurs.testdt6.exception.JobNotFoundException;
 import pl.kurs.testdt6.file.FileService;
 import pl.kurs.testdt6.subscribe.SubscribeService;
@@ -10,9 +9,7 @@ import pl.kurs.testdt6.subscribe.SubscribeService;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -26,19 +23,16 @@ public class JobService {
         return jobRepository.findAll();
     }
 
-    public CreateJobModel createNewJob(String path) throws IOException {
-        CreateJobModel createJobModel = new CreateJobModel();
+    public JobEntity createNewJob(String path) throws IOException {
         if (!isJobAlreadyCreated(path)) {
             JobEntity job = setJobAttrib(path);
             jobRepository.saveAndFlush(job);
             subscribeService.subscribeJob(job);
-            createJobModel.setUuid(job.getJobId());
-            return createJobModel;
+            return job;
         }
         JobEntity workingJob = jobRepository.findByPath(path);
         subscribeService.subscribeJob(workingJob);
-        createJobModel.setUuid(workingJob.getJobId());
-        return createJobModel;
+        return workingJob;
     }
 
     private JobEntity setJobAttrib(String path) throws IOException {
@@ -50,7 +44,7 @@ public class JobService {
     }
 
     @Transactional
-    public String deleteJob(String jobUUID) throws JobNotFoundException, IOException {
+    public String deleteJob(String jobUUID) throws JobNotFoundException {
         return subscribeService.unsubscribeJob(jobUUID);
     }
 
@@ -58,28 +52,12 @@ public class JobService {
         return jobRepository.existsByPath(path);
     }
 
-    public JobStatusModel getJob(String uuid) {
-        JobStatusModel jobStatus = new JobStatusModel();
-        JobEntity byId = jobRepository.findById(uuid).orElseThrow(() -> new JobNotFoundException(uuid));
-        jobStatus.setDateTime(byId.getStartTime());
-        Set<AccountEntity> accounts = byId.getAccounts();
-        int count = accounts.size();
-        jobStatus.setSubscribersAmount(count);
-        return jobStatus;
+    public JobEntity getJob(String uuid) {
+        return jobRepository.findById(uuid).orElseThrow(() -> new JobNotFoundException(uuid));
     }
 
-    public JobStatusAdminModel getJobAdmin(String uuid) {
-        JobStatusAdminModel jobStatusAdmin = new JobStatusAdminModel();
-        Set<String> emails = new HashSet<>();
-        JobEntity byId = jobRepository.findById(uuid).orElseThrow(() -> new JobNotFoundException(uuid));
-        jobStatusAdmin.setDateTime(byId.getStartTime());
-        Set<AccountEntity> accounts = byId.getAccounts();
-        for (AccountEntity account : accounts) {
-            emails.add(account.getEmail());
-        }
-        jobStatusAdmin.setEmailList(emails);
-        int count = accounts.size();
-        jobStatusAdmin.setSubscribersAmount(count);
-        return jobStatusAdmin;
+
+    public JobEntity getJobAdmin(String uuid) {
+        return jobRepository.findById(uuid).orElseThrow(() -> new JobNotFoundException(uuid));
     }
 }

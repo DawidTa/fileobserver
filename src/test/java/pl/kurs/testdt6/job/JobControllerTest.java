@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetup;
+import liquibase.pro.packaged.J;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,11 +92,11 @@ class JobControllerTest {
     @WithMockUser(username = "Dawid", password = "Test123!", roles = "ADMIN")
     void getAllJobsForAdmin() throws Exception {
 
-        CreateJobModel job = registerTestJob(testDirectory.getPath(), "test.txt");
-        CreateJobModel nextJob = registerTestJob(testDirectory.getPath(), "test2.txt");
+        JobEntity job = registerTestJob(testDirectory.getPath(), "test.txt");
+        JobEntity nextJob = registerTestJob(testDirectory.getPath(), "test2.txt");
 
-        JobEntity fistJob = jobRepository.getById(job.getUuid());
-        JobEntity secondJob = jobRepository.getById(nextJob.getUuid());
+        JobEntity fistJob = jobRepository.getById(job.getJobId());
+        JobEntity secondJob = jobRepository.getById(nextJob.getJobId());
 
         MvcResult result = mockMvc.perform(get("/follow"))
                 .andDo(print())
@@ -124,9 +125,9 @@ class JobControllerTest {
     @Test
     @WithMockUser(username = "Dawid123", password = "Test123!", roles = "USER")
     void getJobByUser() throws Exception {
-        CreateJobModel job = registerTestJob(testDirectory.getPath(), "test.txt");
+        JobEntity job = registerTestJob(testDirectory.getPath(), "test.txt");
 
-        MvcResult result = mockMvc.perform(get("/follow/{jobUUID}", job.getUuid()))
+        MvcResult result = mockMvc.perform(get("/follow/{jobUUID}", job.getJobId()))
                 .andDo(print())
                 .andExpect(status().isOk()).andReturn();
 
@@ -137,7 +138,7 @@ class JobControllerTest {
     @Test
     @WithMockUser(username = "Dawid123", password = "Test123!", roles = "USER")
     void getJobByUser_shouldReturnNotFound() throws Exception {
-        CreateJobModel job = registerTestJob(testDirectory.getPath(), "test.txt");
+        JobEntity job = registerTestJob(testDirectory.getPath(), "test.txt");
 
         mockMvc.perform(get("/follow/{jobUUID}", "c1950e0a-8202-11ec-a8a3-0242ac120002"))
                 .andDo(print())
@@ -161,8 +162,8 @@ class JobControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated()).andReturn();
 
-        CreateJobModel job = objectMapper.readValue(result.getResponse().getContentAsString(), CreateJobModel.class);
-        assertThat(job.getUuid()).isNotNull();
+        JobEntity job = objectMapper.readValue(result.getResponse().getContentAsString(), JobEntity.class);
+        assertThat(job.getJobId()).isNotNull();
     }
 
     @Test
@@ -179,8 +180,8 @@ class JobControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated()).andReturn();
 
-        CreateJobModel job = objectMapper.readValue(result.getResponse().getContentAsString(), CreateJobModel.class);
-        assertThat(job.getUuid()).isNotNull();
+        JobEntity job = objectMapper.readValue(result.getResponse().getContentAsString(), JobEntity.class);
+        assertThat(job.getJobId()).isNotNull();
 
         addTextToFile(Path.of(fileInTempDir.getPath()));
 
@@ -212,8 +213,8 @@ class JobControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated()).andReturn();
 
-        CreateJobModel job = objectMapper.readValue(result.getResponse().getContentAsString(), CreateJobModel.class);
-        assertThat(job.getUuid()).isNotNull();
+        JobEntity job = objectMapper.readValue(result.getResponse().getContentAsString(), JobEntity.class);
+        assertThat(job.getJobId()).isNotNull();
 
         addManyLinesToFile(Path.of(fileInTempDir.getPath()));
 
@@ -292,9 +293,9 @@ class JobControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated()).andReturn();
 
-        CreateJobModel job = objectMapper.readValue(result.getResponse().getContentAsString(), CreateJobModel.class);
+        JobEntity job = objectMapper.readValue(result.getResponse().getContentAsString(), JobEntity.class);
 
-        MvcResult resultTwoSubs = mockMvc.perform(get("/follow/{jobUUID}", job.getUuid())
+        MvcResult resultTwoSubs = mockMvc.perform(get("/follow/{jobUUID}", job.getJobId())
                         .with(user("Dawid123").password("Test123!").roles("USER")))
                 .andDo(print())
                 .andExpect(status().isOk()).andReturn();
@@ -303,12 +304,12 @@ class JobControllerTest {
         assertThat(jobStatusModelSub.getSubscribersAmount()).isEqualTo(2);
 
 
-        mockMvc.perform(delete("/follow/{jobUUID}", job.getUuid())
+        mockMvc.perform(delete("/follow/{jobUUID}", job.getJobId())
                         .with(user("DawidUser").password("Test123!").roles("USER")))
                 .andDo(print());
 
 
-        MvcResult resultUnsub = mockMvc.perform(get("/follow/{jobUUID}", job.getUuid())
+        MvcResult resultUnsub = mockMvc.perform(get("/follow/{jobUUID}", job.getJobId())
                         .with(user("Dawid123").password("Test123!").roles("USER")))
                 .andDo(print())
                 .andExpect(status().isOk()).andReturn();
@@ -322,13 +323,13 @@ class JobControllerTest {
     @Test
     @WithMockUser(username = "Dawid", password = "Test123!", roles = "ADMIN")
     void getJobAdmin() throws Exception {
-        CreateJobModel job = registerTestJob(testDirectory.getPath(), "test.txt");
-        JobEntity jobEntity = jobRepository.getById(job.getUuid());
+        JobEntity job = registerTestJob(testDirectory.getPath(), "test.txt");
+        JobEntity jobEntity = jobRepository.getById(job.getJobId());
         Set<String> emailSet = jobEntity.getAccounts()
                 .stream().map(AccountEntity::getEmail)
                 .collect(Collectors.toSet());
 
-        MvcResult result = mockMvc.perform(get("/follow/{jobUUID}", job.getUuid()))
+        MvcResult result = mockMvc.perform(get("/follow/{jobUUID}", job.getJobId()))
                 .andDo(print())
                 .andExpect(status().isOk()).andReturn();
 
@@ -340,9 +341,9 @@ class JobControllerTest {
     @Test
     @WithMockUser(username = "Dawid123", password = "Test123!", roles = "User")
     void getJobAdminByUser_ShouldReturnForbidden() throws Exception {
-        CreateJobModel job = registerTestJob(testDirectory.getPath(), "test.txt");
+        JobEntity job = registerTestJob(testDirectory.getPath(), "test.txt");
 
-        mockMvc.perform(get("/follow/{jobUUID}", job.getUuid()))
+        mockMvc.perform(get("/follow/{jobUUID}", job.getJobId()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
@@ -383,21 +384,21 @@ class JobControllerTest {
     @Test
     @WithMockUser(username = "Dawid123", password = "Test123!", roles = "USER")
     void deleteJob() throws Exception {
-        CreateJobModel jobEntity = registerTestJob(testDirectory.getPath(), "test.txt");
+        JobEntity jobEntity = registerTestJob(testDirectory.getPath(), "test.txt");
 
-        mockMvc.perform(delete("/follow/{jobUUID}", jobEntity.getUuid()))
+        mockMvc.perform(delete("/follow/{jobUUID}", jobEntity.getJobId()))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        assertThat(jobRepository.findById(jobEntity.getUuid())).isEmpty();
+        assertThat(jobRepository.findById(jobEntity.getJobId())).isEmpty();
     }
 
     @Test
     @WithMockUser(username = "Dawid", password = "Test123!", roles = "ADMIN")
     void deleteJobByAdmin_shouldReturnForbidden() throws Exception {
-        CreateJobModel createJobModel = registerTestJob(testDirectory.getPath(), "test.txt");
+        JobEntity job = registerTestJob(testDirectory.getPath(), "test.txt");
 
-        mockMvc.perform(delete("/follow/{jobUUID}", createJobModel.getUuid()))
+        mockMvc.perform(delete("/follow/{jobUUID}", job.getJobId()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
@@ -419,7 +420,7 @@ class JobControllerTest {
     }
 
 
-    private CreateJobModel registerTestJob(String testFilePath, String fileName) throws IOException {
+    private JobEntity registerTestJob(String testFilePath, String fileName) throws IOException {
         File fileInTempDir = createFileInTempDir(new File(testFilePath), fileName);
         return jobService.createNewJob(fileInTempDir.getPath());
     }

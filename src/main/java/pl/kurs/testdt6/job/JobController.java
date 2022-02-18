@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,6 +16,7 @@ import pl.kurs.testdt6.exception.JobNotFoundException;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ import java.io.IOException;
 public class JobController {
 
     private final JobService jobService;
+    private final ModelMapper modelMapper;
 
     @GetMapping
     @ApiOperation(value = "Finds all active jobs",
@@ -32,7 +36,10 @@ public class JobController {
             @ApiResponse(code = 500, message = "Internal Sever Error")
     })
     public ResponseEntity getAllJobs() {
-        return ResponseEntity.ok(jobService.getJobs());
+        TypeToken<List<JobDTOModel>> typeToken = new TypeToken<>() {
+        };
+        List<JobDTOModel> jobDTOModel = modelMapper.map(jobService.getJobs(), typeToken.getType());
+        return ResponseEntity.ok(jobDTOModel);
     }
 
     @GetMapping("/{jobUUID}")
@@ -47,21 +54,24 @@ public class JobController {
     public ResponseEntity getJob(@PathVariable String jobUUID, Authentication authentication) {
         String role = authentication.getAuthorities().toString();
         if (role.equals("[ROLE_USER]")) {
-            return new ResponseEntity(jobService.getJob(jobUUID), HttpStatus.OK);
+            JobStatusModel jobStatusModel = modelMapper.map(jobService.getJob(jobUUID), JobStatusModel.class);
+            return new ResponseEntity(jobStatusModel, HttpStatus.OK);
         }
-            return new ResponseEntity(jobService.getJobAdmin(jobUUID), HttpStatus.OK);
+        JobStatusAdminModel jobStatusAdmin = modelMapper.map(jobService.getJobAdmin(jobUUID), JobStatusAdminModel.class);
+        return new ResponseEntity(jobStatusAdmin, HttpStatus.OK);
     }
 
     @PostMapping
     @ApiOperation(value = "Start observing the file",
             authorizations = {@Authorization(value = "basicAuth")})
     @ApiResponses({
-            @ApiResponse(code = 201, message = "Created", response = JobEntity.class),
+            @ApiResponse(code = 201, message = "Created", response = CreateJobModel.class),
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 500, message = "Internal Sever Error")
     })
     public ResponseEntity registerJob(@Valid @RequestBody JobModel jobModel) throws IOException {
-        return new ResponseEntity(jobService.createNewJob(jobModel.getPath()), HttpStatus.CREATED);
+        CreateJobModel createJobModel = modelMapper.map(jobService.createNewJob(jobModel.getPath()), CreateJobModel.class);
+        return new ResponseEntity(createJobModel, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{jobUUID}")

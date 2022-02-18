@@ -19,7 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "role")
-public class RoleEntity implements GrantedAuthority{
+public class RoleEntity implements GrantedAuthority {
 
     @Id
     @GeneratedValue(generator = "UUID")

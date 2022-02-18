@@ -12,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
-import pl.kurs.testdt6.job.CreateJobModel;
 import pl.kurs.testdt6.job.JobEntity;
 import pl.kurs.testdt6.job.JobRepository;
 import pl.kurs.testdt6.job.JobService;
@@ -68,8 +67,8 @@ public class NotificationTest {
         String path = testDirectory.getPath() + "/test.txt";
 
 
-        CreateJobModel job = registerTestJobBigFile(path);
-        JobEntity jobEntity = jobRepository.getById(job.getUuid());
+        JobEntity job = registerTestJobBigFile(path);
+        JobEntity jobEntity = jobRepository.getById(job.getJobId());
         addManyLinesToFile(Path.of(jobEntity.getPath()));
 
 
@@ -87,7 +86,7 @@ public class NotificationTest {
     }
 
 
-    private CreateJobModel registerTestJobBigFile(String path) throws IOException {
+    private JobEntity registerTestJobBigFile(String path) throws IOException {
         return jobService.createNewJob(path);
     }
 
