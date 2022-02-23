@@ -55,9 +55,4 @@ public class JobService {
     public JobEntity getJob(String uuid) {
         return jobRepository.findById(uuid).orElseThrow(() -> new JobNotFoundException(uuid));
     }
-
-
-    public JobEntity getJobAdmin(String uuid) {
-        return jobRepository.findById(uuid).orElseThrow(() -> new JobNotFoundException(uuid));
-    }
 }

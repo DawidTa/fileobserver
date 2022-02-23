@@ -39,9 +39,7 @@ public class AccountEntity implements UserDetails {
     private String activationToken;
 
     @ManyToMany(
-            cascade = {CascadeType.MERGE, CascadeType.PERSIST},
-            fetch = FetchType.LAZY
-    )
+            cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(
             name = "users_jobs",
             joinColumns = @JoinColumn(name = "account_id"),
@@ -50,8 +48,7 @@ public class AccountEntity implements UserDetails {
     private Set<JobEntity> jobs = new HashSet<>();
 
     @ManyToMany(
-            cascade = {CascadeType.MERGE, CascadeType.PERSIST}
-    )
+            cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(name = "account_id"),

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetup;
-import liquibase.pro.packaged.J;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -360,8 +359,8 @@ class JobControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(jsonPath("$.message").value("File not exist or is a directory"))
-                .andExpect(jsonPath("$.exceptionType").value("IllegalArgumentException"))
+                .andExpect(jsonPath("$.message").value("Path not exists or is a  directory."))
+                .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"))
                 .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.toString()))
                 .andExpect(status().isBadRequest());
     }

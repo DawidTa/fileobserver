@@ -10,6 +10,7 @@ import org.modelmapper.TypeToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.kurs.testdt6.exception.JobNotFoundException;
@@ -46,19 +47,19 @@ public class JobController {
     @ApiOperation(value = "Find specific active job and number of observers",
             authorizations = {@Authorization(value = "basicAuth")})
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Ok", response = JobEntity.class),
+            @ApiResponse(code = 200, message = "Ok", response = JobStatusModel.class),
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 404, message = "Not Found"),
             @ApiResponse(code = 500, message = "Internal Sever Error")
     })
-    public ResponseEntity getJob(@PathVariable String jobUUID, Authentication authentication) {
-        String role = authentication.getAuthorities().toString();
-        if (role.equals("[ROLE_USER]")) {
-            JobStatusModel jobStatusModel = modelMapper.map(jobService.getJob(jobUUID), JobStatusModel.class);
-            return new ResponseEntity(jobStatusModel, HttpStatus.OK);
+    public ResponseEntity getJob(@PathVariable String jobUUID) {
+        String role = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
+        if (role.contains("ADMIN")) {
+            JobStatusAdminModel jobStatusAdmin = modelMapper.map(jobService.getJob(jobUUID), JobStatusAdminModel.class);
+            return new ResponseEntity(jobStatusAdmin, HttpStatus.OK);
         }
-        JobStatusAdminModel jobStatusAdmin = modelMapper.map(jobService.getJobAdmin(jobUUID), JobStatusAdminModel.class);
-        return new ResponseEntity(jobStatusAdmin, HttpStatus.OK);
+        JobStatusModel jobStatusModel = modelMapper.map(jobService.getJob(jobUUID), JobStatusModel.class);
+        return new ResponseEntity(jobStatusModel, HttpStatus.OK);
     }
 
     @PostMapping
@@ -83,7 +84,7 @@ public class JobController {
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 500, message = "Internal Sever Error")
     })
-    public ResponseEntity deleteJob(@PathVariable String jobUUID) throws JobNotFoundException, IOException {
+    public ResponseEntity deleteJob(@PathVariable String jobUUID) throws JobNotFoundException {
         return new ResponseEntity(jobService.deleteJob(jobUUID), HttpStatus.OK);
     }
 }

@@ -5,7 +5,9 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import pl.kurs.testdt6.account.AccountEntity;
 import pl.kurs.testdt6.exception.ExceptionModel;
 import pl.kurs.testdt6.job.JobEntity;
@@ -57,7 +59,6 @@ public class BeanConfig {
         PropertyMap<JobStatusAdminModel, JobEntity> map = new PropertyMap<>() {
             @Override
             protected void configure() {
-
             }
         };
         mapper.addMappings(map);

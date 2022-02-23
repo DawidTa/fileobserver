@@ -32,6 +32,6 @@ public class JobEntity {
     private long lastByte;
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "jobs", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "jobs")
     private Set<AccountEntity> accounts = new HashSet<>();
 }
