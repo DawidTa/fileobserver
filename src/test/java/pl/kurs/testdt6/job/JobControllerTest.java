@@ -32,7 +32,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.WatchKey;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -194,7 +197,7 @@ class JobControllerTest {
 
         assertEquals("Notification changes", currentMessage.getSubject());
         assertTrue(GreenMailUtil.getBody(currentMessage).contains("Added Text"));
-        assertEquals("dawid.taczkowski@gmail.com", currentMessage.getAllRecipients()[0].toString());
+        assertEquals("dawid.testowymail@gmail.com", currentMessage.getAllRecipients()[0].toString());
     }
 
     @Test
@@ -226,7 +229,7 @@ class JobControllerTest {
 
         assertEquals("Notification changes", currentMessage.getSubject());
         assertTrue(GreenMailUtil.getBody(currentMessage).contains("Added Text 9999"));
-        assertEquals("dawid.taczkowski@gmail.com", currentMessage.getAllRecipients()[0].toString());
+        assertEquals("dawid.testowymail@gmail.com", currentMessage.getAllRecipients()[0].toString());
     }
 
 
@@ -265,8 +268,8 @@ class JobControllerTest {
 
         assertEquals("Notification changes", currentMessage.getSubject());
         assertTrue(GreenMailUtil.getBody(currentMessage).contains("Added Text"));
-        assertEquals("dtmaly7@gmail.com", currentMessage.getAllRecipients()[0].toString());
-        assertEquals("dawid.taczkowski@gmail.com", secondMessage.getAllRecipients()[0].toString());
+        assertEquals("jakistestowymail@gmail.com", currentMessage.getAllRecipients()[0].toString());
+        assertEquals("dawid.testowymail@gmail.com", secondMessage.getAllRecipients()[0].toString());
 
     }
 

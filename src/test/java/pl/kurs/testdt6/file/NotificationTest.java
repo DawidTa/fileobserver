@@ -82,7 +82,7 @@ public class NotificationTest {
 
         assertEquals("Notification changes", currentMessage.getSubject());
         assertTrue(GreenMailUtil.getBody(currentMessage).contains("Added Text 99999"));
-        assertEquals("dawid.taczkowski@gmail.com", currentMessage.getAllRecipients()[0].toString());
+        assertEquals("dawid.testowymail@gmail.com", currentMessage.getAllRecipients()[0].toString());
     }
 
 
