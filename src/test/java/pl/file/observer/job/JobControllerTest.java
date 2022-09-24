@@ -19,6 +19,7 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.file.observer.account.AccountEntity;
@@ -52,7 +53,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Sql("/load-data.sql")
+@SqlGroup({
+        @Sql(value = "/reset-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+        @Sql(value = "/load-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+
+})
 class JobControllerTest {
 
     @Autowired
@@ -268,8 +273,8 @@ class JobControllerTest {
 
         assertEquals("Notification changes", currentMessage.getSubject());
         assertTrue(GreenMailUtil.getBody(currentMessage).contains("Added Text"));
-        assertEquals("jakistestowymail@gmail.com", currentMessage.getAllRecipients()[0].toString());
-        assertEquals("dawid.testowymail@gmail.com", secondMessage.getAllRecipients()[0].toString());
+        assertEquals("dawid.testowymail@gmail.com", currentMessage.getAllRecipients()[0].toString());
+        assertEquals("jakistestowymail@gmail.com", secondMessage.getAllRecipients()[0].toString());
 
     }
 
