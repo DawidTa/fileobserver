@@ -2,7 +2,7 @@
 
 # General information
 
-An application that tracks changes to files. 
+An application (REST API) that tracks changes to files. 
 
 The user indicates the file on which he wants to track changes. 
 
