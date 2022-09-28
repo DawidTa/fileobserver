@@ -13,3 +13,11 @@ One user can observe multiple files and one file could be observed by multiple u
 
 All tables in database are created through liquibase. 
 Liquibase also create users with roles.
+
+
+In application.properties you have to specify your database address 
+and in property "filewatch.service.path" you have to indicate path to foler
+where are files that you want to observe.
+
+In property "filewatch.service.subdirectories" you can specify that app 
+should scan subdirectories or not.
